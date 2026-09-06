@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#111827" />
+
+  <!-- iOS / PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Training Journal" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <title>5-Week Training Journal</title>
+
+  <style>
+    :root{
+      --bg:#f3f4f6; --card:#ffffff; --ink:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --accent:#2563eb; --accent2:#1d4ed8;
+      --success:#059669; --danger:#dc2626;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink)}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
+      padding-bottom:calc(18px + var(--safe-bottom));
+      overscroll-behavior-y:none;
+    }
+
+    header{
+      background:#111827;color:#fff;
+      padding:calc(14px + var(--safe-top)) calc(16px + var(--safe-right)) 14px calc(16px + var(--safe-left));
+      position:sticky;top:0;z-index:10;
+      box-shadow:0 2px 8px rgba(0,0,0,.16)
+    }
+    header h1{margin:0;font-size:1.16rem;line-height:1.2}
+    header p{margin:5px 0 0;color:#d1d5db;font-size:.86rem}
+
+    .wrap{
+      max-width:900px;margin:0 auto;
+      padding:14px calc(14px + var(--safe-right)) 0 calc(14px + var(--safe-left))
+    }
+
+    .install-tip{
+      display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;
+      padding:12px 14px;margin-bottom:14px;font-size:.9rem;line-height:1.35
+    }
+    .install-tip strong{display:block;margin-bottom:3px}
+
+    .toolbar{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;margin-bottom:14px
+    }
+
+    button,.btn{
+      min-height:48px;border:0;border-radius:12px;padding:11px 12px;
+      font-weight:800;font-size:.92rem;cursor:pointer;
+      background:var(--accent);color:#fff;text-decoration:none;
+      display:flex;align-items:center;justify-content:center;text-align:center
+    }
+    button:active,.btn:active{transform:scale(.985)}
+    button.secondary{background:#374151}
+    button.ghost{background:#fff;color:#111827;border:1px solid var(--line)}
+    button.danger{background:var(--danger)}
+
+    .stats{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;margin-bottom:16px
+    }
+    .stat{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:14px;padding:13px
+    }
+    .stat .label{font-size:.76rem;color:var(--muted)}
+    .stat .value{font-size:1.35rem;font-weight:850;margin-top:3px}
+
+    .week{margin-bottom:20px}
+    .week-title{
+      display:flex;justify-content:space-between;align-items:flex-end;
+      gap:12px;margin:0 0 10px
+    }
+    .week-title h2{font-size:1.08rem;margin:0}
+    .week-progress{color:var(--muted);font-size:.78rem;text-align:right;min-width:130px}
+    .bar{height:7px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:6px}
+    .bar > span{display:block;height:100%;background:var(--success);width:0}
+
+    .cards{display:grid;grid-template-columns:1fr;gap:12px}
+    .card{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:16px;padding:15px;box-shadow:0 1px 2px rgba(0,0,0,.04)
+    }
+    .card.completed{border-color:#a7f3d0;background:#f0fdf4}
+    .card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .card h3{margin:0;font-size:1rem}
+    .day{color:var(--accent);font-weight:850;font-size:.82rem;margin-bottom:3px}
+
+    .complete-wrap{
+      display:flex;align-items:center;gap:7px;font-weight:850;
+      min-height:44px;white-space:nowrap
+    }
+    .complete-wrap input{
+      width:24px;height:24px;accent-color:var(--success)
+    }
+    .head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    button.small{min-height:38px;padding:7px 10px;font-size:.78rem;border-radius:10px;background:#374151}
+    .card-body{overflow:hidden}
+    .card.collapsed .card-body{display:none}
+    .collapsed-summary{display:none;color:var(--muted);font-size:.8rem;margin-top:7px}
+    .card.collapsed .collapsed-summary{display:block}
+
+    .workout-list{margin:12px 0;padding-left:19px;color:#374151;font-size:.92rem}
+    .workout-list li{margin:7px 0;line-height:1.35}
+
+    .fields{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+    .field{display:flex;flex-direction:column;gap:5px}
+    label{font-size:.78rem;font-weight:800;color:#374151}
+    input,textarea,select{
+      width:100%;min-height:46px;padding:11px 12px;
+      border:1px solid #d1d5db;border-radius:11px;background:#fff;
+      font:inherit;font-size:16px;color:var(--ink)
+    }
+    textarea{min-height:92px;resize:vertical}
+    input:focus,textarea:focus{
+      outline:3px solid rgba(37,99,235,.14);border-color:#60a5fa
+    }
+
+    .footer-note{
+      color:var(--muted);font-size:.78rem;text-align:center;
+      margin:22px 0 4px;line-height:1.4
+    }
+    .hidden{display:none!important}
+
+    @media(min-width:720px){
+      .toolbar{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .full{grid-column:1/-1}
+    }
+
+    @media(display-mode:standalone){
+      .install-tip{display:none!important}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>5-Week Training Journal</h1>
+  <p>CrossFit / HIIT • 40 minutes or less</p>
+</header>
+
+<div class="wrap">
+  <div id="installTip" class="install-tip">
+    <strong>Install on iPhone</strong>
+    In Safari, tap the Share button, then choose <b>Add to Home Screen</b>.
+  </div>
+
+  <div class="toolbar">
+    <button onclick="exportJSON()">Export Backup</button>
+    <label class="btn secondary" for="importFile">Import Backup</label>
+    <input id="importFile" class="hidden" type="file" accept=".json,application/json" onchange="importJSON(event)">
+    <button class="ghost" onclick="exportCSV()">Export CSV</button>
+    <button class="danger" onclick="resetAll()">Reset Journal</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="label">Completed</div><div class="value" id="completedCount">0 / 20</div></div>
+    <div class="stat"><div class="label">Completion</div><div class="value" id="completionPct">0%</div></div>
+    <div class="stat"><div class="label">Average RPE</div><div class="value" id="avgRpe">—</div></div>
+    <div class="stat"><div class="label">Training Time</div><div class="value" id="totalTime">0 min</div></div>
+  </div>
+
+  <div id="app"></div>
+
+  <div class="footer-note">
+    Completed days collapse automatically. Tap Expand or Collapse any time. Entries save automatically on this iPhone.
+  </div>
+</div>
+
+<script>
+const program = [
+  {week:1,workouts:[
+    {day:"Sunday",title:"Squat + Sprint",items:[
+      "Warm-up (5 min): 2 rounds — 200m row, 10 air squats, 10 push-ups, 5 inchworms",
+      "Strength (15 min): Back Squat 5×3 @ 75–80%",
+      "WOD (15 min cap): 4 rounds — 10 DB thrusters, 10 push-ups, 200m run"
+    ]},
+    {day:"Tuesday",title:"Clean Day",items:[
+      "Warm-up: 2 rounds — 200m row, 5 empty-bar cleans, 5 front squats",
+      "Strength (15 min): Hang Power Clean — 6–8 quality sets of 2, building gradually",
+      "WOD: 12-min AMRAP — 8 power cleans, 8 burpees, 200m run"
+    ]},
+    {day:"Thursday",title:"Deadlift",items:[
+      "Warm-up: 2 rounds — 200m run, 10 good mornings, 5 deadlifts",
+      "Strength (15 min): Deadlift 5×2 heavy; use remaining time for one controlled back-off set of 5",
+      "WOD (15 min cap): 400m run, 30 HPC; 300m run, 20 HPC; 200m run, 10 HPC"
+    ]},
+    {day:"Saturday",title:"Engine Builder",items:[
+      "Warm-up (5 min): Easy row and mobility",
+      "WOD: 20-min AMRAP — 10-cal row, 8 power cleans, 8 shoulder-to-overhead, 200m run"
+    ]}
+  ]},
+  {week:2,workouts:[
+    {day:"Sunday",title:"Front Squat",items:[
+      "Warm-up (5 min): 250m row, walking lunges, air squats",
+      "Strength (15 min): Front Squat 5×3; finish with one heavier double if form is sharp",
+      "WOD (15 min cap): 4 rounds — 8 thrusters, 10 box step-overs, 200m run"
+    ]},
+    {day:"Tuesday",title:"Snatch",items:[
+      "Warm-up (5 min): 250m row, overhead squats, muscle snatches",
+      "Strength (15 min): Power Snatch — 6–8 sets of 2, building gradually",
+      "WOD (15 min cap): 21-15-9 alternating DB snatches and row calories"
+    ]},
+    {day:"Thursday",title:"Heavy Pull",items:[
+      "Warm-up (5 min): 200m row, 10 RDLs, 10 push-ups",
+      "Strength (15 min): Deadlift — build across 5 heavy doubles",
+      "WOD (12 min cap): 4 rounds — 5 deadlifts, 8 burpees"
+    ]},
+    {day:"Saturday",title:"Hero",items:[
+      "Warm-up (5 min): Easy row and barbell prep",
+      "WOD (20 min cap): 3 rounds — 15 hang power cleans, 15 toes-to-bar, 300m run"
+    ]}
+  ]},
+  {week:3,workouts:[
+    {day:"Sunday",title:"Heavy Squat",items:[
+      "Warm-up (5 min): 500m row and mobility",
+      "Strength (15 min): Back Squat 5×2 @ 85%; add one back-off set of 5 if time allows",
+      "WOD: 12-min AMRAP — 8 DB front squats, 8 push-ups, 8 box jumps"
+    ]},
+    {day:"Tuesday",title:"Clean & Jerk",items:[
+      "Warm-up (5 min): Barbell complex",
+      "Strength (18 min): Build to a heavy clean & jerk single with quality attempts",
+      "WOD: Every 3 min × 5 — 12-cal row, 6 power cleans"
+    ]},
+    {day:"Thursday",title:"Deadlift + Push Press",items:[
+      "Warm-up (5 min): 300m run, 10 good mornings, 10 lunges",
+      "Strength (15 min): Deadlift 5×2",
+      "WOD (15 min cap): 18-12-6 deadlift and push press; 200m run after each round"
+    ]},
+    {day:"Saturday",title:"Conditioning EMOM",items:[
+      "Warm-up (5 min): Easy row and movement prep",
+      "WOD: 20-min EMOM — M1 12-cal row, M2 10 burpees, M3 8 front squats, M4 rest"
+    ]}
+  ]},
+  {week:4,workouts:[
+    {day:"Sunday",title:"Thrusters",items:[
+      "Warm-up (5 min): 250m row, shoulder mobility, push-ups",
+      "Strength (15 min): Thruster 5×3, building to a heavy technical triple",
+      "WOD (15 min cap): 4 rounds — 10 thrusters, 10 push-ups, 200m run"
+    ]},
+    {day:"Tuesday",title:"Snatch + Mind Eraser",items:[
+      "Warm-up (5 min): Barbell flow",
+      "Strength (18 min): Build to a heavy snatch with controlled attempts",
+      "WOD: 15-min AMRAP — 7 power cleans, 7 burpees, 200m run"
+    ]},
+    {day:"Thursday",title:"Benchmark Repeat",items:[
+      "Warm-up (5 min): Easy run and barbell prep",
+      "WOD (20 min cap): 400m run, 30 HPC; 300m run, 20 HPC; 200m run, 10 HPC",
+      "Goal: Beat Week 1 while maintaining sound technique"
+    ]},
+    {day:"Saturday",title:"Grinder",items:[
+      "Warm-up (5 min): Easy row and shoulder prep",
+      "WOD: 20-min AMRAP — 10-cal row, 8 shoulder-to-overhead, 8 power cleans, 200m run"
+    ]}
+  ]},
+  {week:5,workouts:[
+    {day:"Sunday",title:"Squat Test",items:[
+      "Warm-up (7 min): Dynamic mobility and progressive squat sets",
+      "Strength (20 min): Work to a technically sound heavy back squat",
+      "WOD: 10-min AMRAP — 10 thrusters, 10 push-ups"
+    ]},
+    {day:"Tuesday",title:"Clean Test",items:[
+      "Warm-up (7 min): Barbell flow and progressive clean sets",
+      "Strength (20 min): Work to a technically sound heavy clean",
+      "WOD (12 min cap): 21-15-9 alternating DB snatches and row calories"
+    ]},
+    {day:"Thursday",title:"Hero Benchmark",items:[
+      "Warm-up (5 min): Easy row, hanging prep, barbell prep",
+      "WOD (20 min cap): 3 rounds — 15 hang power cleans, 15 toes-to-bar, 300m run"
+    ]},
+    {day:"Saturday",title:"Final Challenge",items:[
+      "Warm-up (5 min): Easy row/run and barbell prep",
+      "WOD (20 min cap): 600m run, 40 HPC; 400m run, 20 HPC; 200m run, 10 HPC"
+    ]}
+  ]}
+];
+
+const STORAGE_KEY="kz_training_journal_ios_v2";
+const OLD_STORAGE_KEY="kz_training_journal_ios_v1";
+let journal={};
+try{
+  const existing=localStorage.getItem(STORAGE_KEY);
+  const old=localStorage.getItem(OLD_STORAGE_KEY);
+  journal=JSON.parse(existing||old||"{}");
+  if(!existing&&old) localStorage.setItem(STORAGE_KEY,JSON.stringify(journal));
+}catch(e){journal={};}
+
+function keyFor(w,i){return `w${w}_d${i}`}
+function getEntry(key){
+  const e=journal[key]||{};
+  return {completed:!!e.completed,collapsed:e.collapsed!==undefined?!!e.collapsed:!!e.completed,date:e.date||"",strengthWeight:e.strengthWeight||"",wodResult:e.wodResult||"",duration:e.duration||"",rpe:e.rpe||"",notes:e.notes||""};
+}
+function saveField(key,field,value){
+  const entry=getEntry(key);
+  if(field==="completed"){entry.completed=!!value;if(value)entry.collapsed=true;}else{entry[field]=value;}
+  journal[key]=entry;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(journal));
+  updateStats(); refreshCardState(key);
+}
+function toggleCollapse(key){
+  const entry=getEntry(key); entry.collapsed=!entry.collapsed; journal[key]=entry;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(journal)); refreshCardState(key);
+}
+function refreshCardState(key){
+  const card=document.querySelector(`[data-key="${key}"]`);
+  if(!card)return;
+  const e=getEntry(key);
+  card.classList.toggle("completed",e.completed);
+  card.classList.toggle("collapsed",e.collapsed);
+  const b=card.querySelector(".collapse-btn"); if(b)b.textContent=e.collapsed?"Expand":"Collapse";
+}
+function esc(s=""){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))
+}
+function render(){
+  const app=document.getElementById("app"); app.innerHTML="";
+  program.forEach(w=>{
+    const section=document.createElement("section");
+    section.className="week";
+    section.innerHTML=`<div class="week-title"><h2>Week ${w.week}</h2><div class="week-progress" id="weekProgress${w.week}"></div></div><div class="cards"></div>`;
+    const cards=section.querySelector(".cards");
+
+    w.workouts.forEach((wo,i)=>{
+      const key=keyFor(w.week,i),e=getEntry(key);
+      const card=document.createElement("article");
+      card.className="card"+(e.completed?" completed":"")+(e.collapsed?" collapsed":"");
+      card.dataset.key=key;
+      card.innerHTML=`
+        <div class="card-head">
+          <div><div class="day">${wo.day}</div><h3>${wo.title}</h3><div class="collapsed-summary">${e.completed?"Completed":"Workout collapsed"}${e.date?" • "+esc(e.date):""}${e.wodResult?" • "+esc(e.wodResult):""}</div></div>
+          <div class="head-actions">
+            <label class="complete-wrap"><input type="checkbox" ${e.completed?"checked":""} onchange="saveField('${key}','completed',this.checked)"> Done</label>
+            <button class="small collapse-btn" onclick="toggleCollapse('${key}')">${e.collapsed?"Expand":"Collapse"}</button>
+          </div>
+        </div>
+        <div class="card-body">
+        <ul class="workout-list">${wo.items.map(x=>`<li>${x}</li>`).join("")}</ul>
+        <div class="fields">
+          <div class="field"><label>Date</label><input type="date" value="${esc(e.date)}" onchange="saveField('${key}','date',this.value)"></div>
+          <div class="field"><label>Duration (minutes)</label><input inputmode="numeric" type="number" min="0" max="180" value="${esc(e.duration)}" placeholder="38" onchange="saveField('${key}','duration',this.value)"></div>
+          <div class="field"><label>Strength weight / top set</label><input value="${esc(e.strengthWeight)}" placeholder="225 lb" onchange="saveField('${key}','strengthWeight',this.value)"></div>
+          <div class="field"><label>WOD result</label><input value="${esc(e.wodResult)}" placeholder="Time, rounds + reps" onchange="saveField('${key}','wodResult',this.value)"></div>
+          <div class="field"><label>RPE (1–10)</label><input inputmode="decimal" type="number" min="1" max="10" step="0.5" value="${esc(e.rpe)}" placeholder="8" onchange="saveField('${key}','rpe',this.value)"></div>
+          <div class="field full"><label>Notes</label><textarea placeholder="Pacing, technique, scaling, how you felt..." onchange="saveField('${key}','notes',this.value)">${esc(e.notes)}</textarea></div>
+        </div>
+        </div>`;
+      cards.appendChild(card);
+    });
+    app.appendChild(section);
+  });
+  updateStats();
+}
+function updateStats(){
+  const all=[]; program.forEach(w=>w.workouts.forEach((_,i)=>all.push(getEntry(keyFor(w.week,i)))));
+  const completed=all.filter(x=>x.completed).length;
+  const rpes=all.map(x=>parseFloat(x.rpe)).filter(Number.isFinite);
+  const total=all.reduce((s,x)=>s+(parseFloat(x.duration)||0),0);
+  document.getElementById("completedCount").textContent=`${completed} / ${all.length}`;
+  document.getElementById("completionPct").textContent=`${Math.round(completed/all.length*100)}%`;
+  document.getElementById("avgRpe").textContent=rpes.length?(rpes.reduce((a,b)=>a+b,0)/rpes.length).toFixed(1):"—";
+  document.getElementById("totalTime").textContent=`${Math.round(total)} min`;
+  program.forEach(w=>{
+    const entries=w.workouts.map((_,i)=>getEntry(keyFor(w.week,i)));
+    const done=entries.filter(x=>x.completed).length;
+    const el=document.getElementById(`weekProgress${w.week}`);
+    if(el) el.innerHTML=`${done} of ${entries.length} complete<div class="bar"><span style="width:${done/entries.length*100}%"></span></div>`;
+  });
+}
+function download(filename,content,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportJSON(){
+  const payload={app:"5-Week Training Journal",version:1,exportedAt:new Date().toISOString(),journal};
+  download("training-journal-backup.json",JSON.stringify(payload,null,2),"application/json");
+}
+function importJSON(event){
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      journal=data.journal||data;
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(journal));
+      render(); alert("Backup imported.");
+    }catch(e){alert("That file could not be imported.")}
+  };
+  reader.readAsText(file); event.target.value="";
+}
+function exportCSV(){
+  const rows=[["Week","Day","Workout","Completed","Date","Duration Minutes","Strength Weight","WOD Result","RPE","Notes"]];
+  program.forEach(w=>w.workouts.forEach((wo,i)=>{
+    const e=getEntry(keyFor(w.week,i));
+    rows.push([w.week,wo.day,wo.title,e.completed?"Yes":"No",e.date,e.duration,e.strengthWeight,e.wodResult,e.rpe,e.notes]);
+  }));
+  const csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  download("training-journal.csv",csv,"text/csv");
+}
+function resetAll(){
+  if(confirm("Erase all journal entries on this iPhone?")){
+    journal={}; localStorage.removeItem(STORAGE_KEY); render();
+  }
+}
+
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+const standalone=window.navigator.standalone===true || window.matchMedia("(display-mode: standalone)").matches;
+if(isIOS && !standalone) document.getElementById("installTip").style.display="block";
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+}
+
+render();
+</script>
+</body>
+</html>
